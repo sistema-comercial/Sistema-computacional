@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sistema Comercial - V1 Funcional</title>
+<style>
+:root{--blue:#2563eb;--dark:#111827;--bg:#f4f6fa;--line:#e5e7eb;--text:#172033}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}.loginbox{width:min(400px,100%);background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 10px 30px #0000000d}.loginbox h1{margin:0 0 6px}.muted{color:#64748b;font-size:13px}.field{margin:14px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;padding:11px;border:1px solid #d6dce5;border-radius:9px;background:#fff}.btn{border:0;background:var(--blue);color:#fff;border-radius:9px;padding:11px 15px;font-weight:700}.btn.gray{background:#eef2f7;color:#273449}.btn.red{background:#dc2626}.app{display:flex;min-height:100vh}.side{width:235px;background:var(--dark);color:#fff;padding:18px 12px;position:fixed;left:0;top:0;bottom:0}.logo{font-size:19px;font-weight:800;padding:8px 10px 20px}.nav button{width:100%;border:0;background:transparent;color:#cbd5e1;text-align:left;padding:11px;border-radius:8px;margin:2px 0}.nav button.active,.nav button:hover{background:var(--blue);color:#fff}.main{margin-left:235px;flex:1}.top{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:3}.content{padding:22px;max-width:1250px;margin:auto}.title{font-size:25px;font-weight:800}.sub{color:#64748b;margin:4px 0 18px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card,.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}.label{color:#64748b;font-size:12px}.value{font-size:24px;font-weight:800;margin-top:5px}.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px}.panel h3{margin:0 0 14px}.toolbar{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}.search{padding:10px;border:1px solid #d6dce5;border-radius:9px;min-width:240px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #eef0f4;font-size:13px}th{font-size:11px;color:#64748b;text-transform:uppercase}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#fef3c7;color:#8a5a00;font-size:11px}.ok{background:#dcfce7;color:#166534}.row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eef0f4;font-size:14px}.modal{position:fixed;inset:0;background:#0007;display:grid;place-items:center;padding:18px;z-index:10}.modalbox{background:#fff;border-radius:16px;padding:20px;width:min(520px,100%);max-height:90vh;overflow:auto}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.notice{padding:10px 12px;border-radius:9px;background:#eff6ff;color:#1d4ed8;font-size:13px;margin:10px 0}
+@media(max-width:800px){.side{width:100%;height:58px;bottom:auto;padding:7px 8px;display:flex;align-items:center;overflow:auto;z-index:5}.logo{display:none}.nav{display:flex;gap:4px}.nav button{white-space:nowrap;font-size:12px;padding:9px}.main{margin-left:0;padding-top:58px}.top{height:58px;padding:0 14px}.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.content{padding:15px}.title{font-size:22px}}
+</style>
+</head>
+<body>
+<div id="login" class="login">
+<div class="loginbox">
+<h1>🏪 Sistema Comercial</h1><div class="muted">Versão 1 funcional — dados salvos neste dispositivo</div>
+<div class="field"><label>Usuário</label><input id="loginUser" value="admin"></div>
+<div class="field"><label>Senha</label><input id="loginPass" type="password" value="1234"></div>
+<button class="btn" style="width:100%" onclick="login()">Entrar</button>
+<div id="loginMsg" class="muted" style="margin-top:10px"></div>
+</div></div>
+
+<div id="app" class="app hidden">
+<aside class="side"><div class="logo">🏪 SISTEMA COMERCIAL</div><div class="nav">
+<button class="active" onclick="go('dashboard',this)">🏠 Dashboard</button>
+<button onclick="go('vendas',this)">🛒 Vendas</button>
+<button onclick="go('estoque',this)">📦 Estoque</button>
+<button onclick="go('clientes',this)">👥 Clientes</button>
+<button onclick="go('financeiro',this)">💰 Financeiro</button>
+</div></aside>
+<main class="main"><header class="top"><b>Minha Empresa</b><span class="muted">Administrador · <button class="btn gray" style="padding:6px 9px" onclick="logout()">Sair</button></span></header><section id="screen" class="content"></section></main>
+</div>
+
+<div id="modal" class="modal hidden"><div class="modalbox" id="modalBody"></div></div>
+
+<script>
+const KEY='sc_v1_data';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{
+products:[
+{id:1,name:'Camiseta básica',code:'001',cost:30,sale:59.9,stock:25,min:10},
+{id:2,name:'Calça jeans',code:'002',cost:45,sale:89.9,stock:7,min:10},
+{id:3,name:'Tênis casual',code:'003',cost:80,sale:159.9,stock:0,min:5}
+],clients:[{id:1,name:'João Silva',phone:'(99) 99999-9999'},{id:2,name:'Maria Santos',phone:'(99) 98888-8888'}],
+sales:[],movements:[],expenses:[],receivables:[]
+};
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function money(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function login(){let u=loginUser.value,p=loginPass.value;if(u==='admin'&&p==='1234'){login.classList.add('hidden');app.classList.remove('hidden');render('dashboard')}else loginMsg.textContent='Usuário ou senha inválidos.'}
+function logout(){app.classList.add('hidden');login.classList.remove('hidden')}
+function go(page,el){document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));el.classList.add('active');render(page)}
+function render(page){
+if(page==='dashboard')renderDash(); if(page==='estoque')renderStock(); if(page==='vendas')renderSales(); if(page==='clientes')renderClients(); if(page==='financeiro')renderFin();
+}
+function renderDash(){
+let total=db.sales.reduce((s,x)=>s+x.total,0), low=db.products.filter(p=>p.stock<=p.min).length;
+screen.innerHTML=`<div class=title>Dashboard</div><div class=sub>Visão geral da empresa</div>
+<div class=cards><div class=card><div class=label>Vendas</div><div class=value>${money(total)}</div></div><div class=card><div class=label>Quantidade de vendas</div><div class=value>${db.sales.length}</div></div><div class=card><div class=label>Produtos</div><div class=value>${db.products.length}</div></div><div class=card><div class=label>Estoque baixo</div><div class=value>${low}</div></div></div>
+<div class=grid><div class=panel><h3>Últimas vendas</h3>${db.sales.slice(-5).reverse().map(s=>`<div class=row><span>Venda #${s.id}<br><small>${s.date}</small></span><b>${money(s.total)}</b></div>`).join('')||'<div class=muted>Nenhuma venda ainda.</div>'}</div>
+<div class=panel><h3>⚠️ Estoque baixo</h3>${db.products.filter(p=>p.stock<=p.min).map(p=>`<div class=row><span>${p.name}</span><span class=badge>${p.stock} un.</span></div>`).join('')||'<div class=muted>Estoque normal.</div>'}</div></div>`;
+}
+function renderStock(){
+screen.innerHTML=`<div class=title>📦 Estoque</div><div class=sub>Cadastro e controle de entradas e saídas</div><div class=panel>
+<div class=toolbar><input class=search id=stockSearch placeholder="🔎 Pesquisar produto" oninput="renderStockTable()"><button class=btn onclick="productModal()">+ Novo produto</button></div><div id=stockTable></div></div>`;
+renderStockTable();
+}
+function renderStockTable(){
+let q=(document.getElementById('stockSearch')?.value||'').toLowerCase(), arr=db.products.filter(p=>p.name.toLowerCase().includes(q)||p.code.includes(q));
+document.getElementById('stockTable').innerHTML=`<div class=tablewrap><table><tr><th>Produto</th><th>Código</th><th>Custo</th><th>Venda</th><th>Estoque</th><th>Mínimo</th><th>Ação</th></tr>${arr.map(p=>`<tr><td>${p.name}</td><td>${p.code}</td><td>${money(p.cost)}</td><td>${money(p.sale)}</td><td>${p.stock}</td><td>${p.min}</td><td><button class="btn gray" onclick="moveModal(${p.id})">Movimentar</button></td></tr>`).join('')}</table></div>`;
+}
+function productModal(){
+openModal(`<h2>Novo produto</h2><div class=field><label>Nome</label><input id=pname></div><div class=field><label>Código</label><input id=pcod></div><div class=field><label>Preço de custo</label><input id=pcost type=number step=.01></div><div class=field><label>Preço de venda</label><input id=psale type=number step=.01></div><div class=field><label>Estoque inicial</label><input id=pstock type=number value=0></div><div class=field><label>Estoque mínimo</label><input id=pmin type=number value=5></div><div class=actions><button class="btn gray" onclick=closeModal()>Cancelar</button><button class=btn onclick=addProduct()>Salvar produto</button></div>`);
+}
+function addProduct(){let p={id:Date.now(),name:pname.value,code:pcod.value,cost:+pcost.value||0,sale:+psale.value||0,stock:+pstock.value||0,min:+pmin.value||0};if(!p.name){alert('Informe o nome.');return}db.products.push(p);if(p.stock)db.movements.push({id:Date.now(),productId:p.id,type:'ENTRADA',qty:p.stock,date:new Date().toLocaleString('pt-BR')});save();closeModal();renderStock()}
+function moveModal(id){let p=db.products.find(x=>x.id===id);openModal(`<h2>Movimentar estoque</h2><div class=notice>${p.name} · saldo atual: <b>${p.stock}</b></div><div class=field><label>Tipo</label><select id=mtype><option value=ENTRADA>Entrada</option><option value=SAIDA>Saída</option><option value=AJUSTE>+ Ajuste</option><option value=AJUSTE_NEG>- Ajuste</option></select></div><div class=field><label>Quantidade</label><input id=mqty type=number min=1></div><div class=actions><button class="btn gray" onclick=closeModal()>Cancelar</button><button class=btn onclick="moveStock(${id})">Confirmar</button></div>`)}
+function moveStock(id){let p=db.products.find(x=>x.id===id),q=+mqty.value||0,t=mtype.value;if(!q)return alert('Informe a quantidade.');if((t==='SAIDA'||t==='AJUSTE_NEG')&&q>p.stock)return alert('Estoque insuficiente.');p.stock += (t==='ENTRADA'||t==='AJUSTE'?q:-q);db.movements.push({id:Date.now(),productId:id,type:t,qty:q,date:new Date().toLocaleString('pt-BR')});save();closeModal();renderStock()}
+function renderSales(){screen.innerHTML=`<div class=title>🛒 Vendas / PDV</div><div class=sub>Faça uma venda e o estoque será baixado automaticamente.</div><div class=panel><div class=toolbar><select id=sproduct class=search onchange=updateSalePrice()><option value="">Selecione o produto</option>${db.products.filter(p=>p.stock>0).map(p=>`<option value="${p.id}">${p.name} — ${money(p.sale)} — estoque ${p.stock}</option>`).join('')}</select><input id=sqty class=search type=number min=1 value=1 placeholder="Quantidade"><button class=btn onclick=addSaleItem()>Adicionar</button></div><div id=cart></div></div>`;window.cart=window.cart||[];drawCart()}
+function updateSalePrice(){}
+function addSaleItem(){let p=db.products.find(x=>x.id==sproduct.value),q=+sqty.value||1;if(!p)return;if(q>p.stock)return alert('Quantidade maior que o estoque.');cart.push({productId:p.id,name:p.name,qty:q,price:p.sale});drawCart()}
+function drawCart(){let el=document.getElementById('cart');if(!el)return;let total=cart.reduce((s,x)=>s+x.qty*x.price,0);el.innerHTML=cart.length?`<div class=tablewrap><table><tr><th>Produto</th><th>Qtd.</th><th>Valor</th><th>Total</th></tr>${cart.map((x,i)=>`<tr><td>${x.name}</td><td>${x.qty}</td><td>${money(x.price)}</td><td>${money(x.qty*x.price)} <button class="btn red" style="padding:5px 8px" onclick="cart.splice(${i},1);drawCart()">×</button></td></tr>`).join('')}</table></div><h3 style=text-align:right>TOTAL: ${money(total)}</h3><div style=text-align:right><button class=btn onclick=finishSale()>Finalizar venda</button></div>`:'<div class=muted>Nenhum produto na venda.</div>'}
+function finishSale(){if(!cart.length)return;for(let x of cart){let p=db.products.find(p=>p.id===x.productId);if(x.qty>p.stock)return alert('Estoque mudou e ficou insuficiente.');}let total=cart.reduce((s,x)=>s+x.qty*x.price,0),id=(db.sales.at(-1)?.id||1000)+1;cart.forEach(x=>{let p=db.products.find(p=>p.id===x.productId);p.stock-=x.qty;db.movements.push({id:Date.now()+x.productId,productId:p.id,type:'SAIDA',qty:x.qty,date:new Date().toLocaleString('pt-BR'),saleId:id})});db.sales.push({id,items:cart.map(x=>({...x})),total,date:new Date().toLocaleString('pt-BR')});save();cart=[];alert('Venda finalizada! Estoque atualizado automaticamente.');render('vendas')}
+function renderClients(){screen.innerHTML=`<div class=title>👥 Clientes</div><div class=sub>Clientes cadastrados</div><div class=panel><div class=toolbar><span></span><button class=btn onclick=clientModal()>+ Novo cliente</button></div><div class=tablewrap><table><tr><th>Nome</th><th>Telefone</th></tr>${db.clients.map(c=>`<tr><td>${c.name}</td><td>${c.phone||''}</td></tr>`).join('')}</table></div></div>`}
+function clientModal(){openModal(`<h2>Novo cliente</h2><div class=field><label>Nome</label><input id=cname></div><div class=field><label>Telefone / WhatsApp</label><input id=cphone></div><div class=actions><button class="btn gray" onclick=closeModal()>Cancelar</button><button class=btn onclick=addClient()>Salvar</button></div>`)}
+function addClient(){if(!cname.value)return alert('Informe o nome.');db.clients.push({id:Date.now(),name:cname.value,phone:cphone.value});save();closeModal();render('clientes')}
+function renderFin(){let sales=db.sales.reduce((s,x)=>s+x.total,0),expenses=db.expenses.reduce((s,x)=>s+x.value,0);screen.innerHTML=`<div class=title>💰 Financeiro</div><div class=sub>Resumo financeiro básico</div><div class=cards><div class=card><div class=label>Entradas por vendas</div><div class=value>${money(sales)}</div></div><div class=card><div class=label>Despesas</div><div class=value>${money(expenses)}</div></div><div class=card><div class=label>Saldo</div><div class=value>${money(sales-expenses)}</div></div><div class=card><div class=label>Vendas</div><div class=value>${db.sales.length}</div></div></div><div class=panel style=margin-top:14px><h3>Movimentações recentes</h3>${db.movements.slice(-10).reverse().map(m=>{let p=db.products.find(x=>x.id===m.productId);return `<div class=row><span>${p?.name||'Produto'} · ${m.type}</span><b>${m.qty}</b></div>`}).join('')||'<div class=muted>Nenhuma movimentação.</div>'}</div>`}
+function openModal(x){modalBody.innerHTML=x;modal.classList.remove('hidden')}function closeModal(){modal.classList.add('hidden')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+</script>
+</body>
+</html>

@@ -49,8 +49,24 @@ sales:[],movements:[],expenses:[],receivables:[]
 db.products=db.products.map(productDefaults);
 function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function money(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-function login(){const u=document.getElementById('loginUser').value.trim();const p=document.getElementById('loginPass').value;if(u==='admin'&&p==='1234'){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');render('dashboard')}else document.getElementById('loginMsg').textContent='Usuário ou senha inválidos.'}
-function logout(){document.getElementById('app').classList.add('hidden');document.getElementById('login').classList.remove('hidden')}
+async function login(){
+  const email=document.getElementById('loginUser').value.trim();
+  const password=document.getElementById('loginPass').value;
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if(error){
+    document.getElementById('loginMsg').textContent='E-mail ou senha incorretos.';
+    return;
+  }
+
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  render();
+}function logout(){document.getElementById('app').classList.add('hidden');document.getElementById('login').classList.remove('hidden')}
 function go(page,el){document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));el.classList.add('active');render(page)}
 function render(page){
 if(page==='dashboard')renderDash(); if(page==='estoque')renderStock(); if(page==='vendas')renderSales(); if(page==='clientes')renderClients(); if(page==='financeiro')renderFin();
